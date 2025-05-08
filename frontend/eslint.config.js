@@ -1,28 +1,65 @@
-import js from '@eslint/js'
-import globals from 'globals'
-import reactHooks from 'eslint-plugin-react-hooks'
-import reactRefresh from 'eslint-plugin-react-refresh'
-import tseslint from 'typescript-eslint'
+import js from '@eslint/js';
+import globals from 'globals';
+import tseslint from 'typescript-eslint';
+import pluginReact from 'eslint-plugin-react';
+import json from '@eslint/json';
+import markdown from '@eslint/markdown';
+import css from '@eslint/css';
+import { defineConfig } from 'eslint/config';
 
-export default tseslint.config(
-  { ignores: ['dist'] },
+export default defineConfig([
+  // Base JS/TS/React settings
   {
-    extends: [js.configs.recommended, ...tseslint.configs.recommended],
-    files: ['**/*.{ts,tsx}'],
+    files: ['**/*.{js,mjs,cjs,ts,jsx,tsx}'],
     languageOptions: {
-      ecmaVersion: 2020,
+      parser: tseslint.parser,
+      parserOptions: {
+        ecmaVersion: 'latest',
+        sourceType: 'module',
+      },
       globals: globals.browser,
     },
     plugins: {
-      'react-hooks': reactHooks,
-      'react-refresh': reactRefresh,
+      js,
+      '@typescript-eslint': tseslint.plugin,
+      react: pluginReact,
     },
     rules: {
-      ...reactHooks.configs.recommended.rules,
-      'react-refresh/only-export-components': [
-        'warn',
-        { allowConstantExport: true },
-      ],
+      ...js.configs.recommended.rules,
+      ...tseslint.configs.recommendedTypeChecked[0].rules,
+      ...pluginReact.configs.recommended.rules,
+      // TURN OFF OLD RULES
+      'react/react-in-jsx-scope': 'off',
     },
   },
-)
+
+  // JSON files
+  {
+    files: ['**/*.json', '**/*.jsonc', '**/*.json5'],
+    plugins: { json },
+    languageOptions: { language: 'json' },
+    rules: {
+      ...json.configs.recommended.rules,
+    },
+  },
+
+  // Markdown files
+  {
+    files: ['**/*.md'],
+    plugins: { markdown },
+    languageOptions: { language: 'markdown' },
+    rules: {
+      ...markdown.configs.recommended.rules,
+    },
+  },
+
+  // CSS files
+  {
+    files: ['**/*.css'],
+    plugins: { css },
+    languageOptions: { language: 'css' },
+    rules: {
+      ...css.configs.recommended.rules,
+    },
+  },
+]);
